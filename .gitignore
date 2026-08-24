@@ -1,0 +1,8 @@
+.env
+portfolio.csv
+logs/
+__pycache__/
+*.pyc
+.venv/
+backtest_results.csv
+*.png
