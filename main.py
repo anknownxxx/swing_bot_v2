@@ -50,6 +50,10 @@ def run_daily() -> None:
 
     run_monitor()
 
+    # 追跡中の銘柄の価格を更新
+    from tracker import update_prices
+    update_prices()
+
 
 def run_weekly() -> None:
     """
@@ -95,6 +99,10 @@ def run_weekly() -> None:
 
     # 週次レポートをGmailに送信
     send_weekly_report(candidates, portfolio_summary)
+
+    # 候補銘柄をExcelに記録
+    from tracker import add_candidates
+    add_candidates(candidates)
 
 
 # ============================================================

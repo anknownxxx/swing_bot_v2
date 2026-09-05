@@ -221,6 +221,55 @@ def plot_cumulative_pnl(df: pd.DataFrame) -> None:
     print("cumulative_pnl.png を保存しました")
     plt.show()
 
+def calculate_confidence_interval(df: pd.DataFrame) -> None:
+    """
+    勝率の95%信頼区間を計算する関数。
+
+    二項分布の正規近似を使用する。
+    サンプル数が十分大きい（n>30）場合に有効。
+
+    数式:
+    CI = p ± 1.96 × √(p(1-p)/n)
+
+    Args:
+        df (pd.DataFrame): トレードデータ
+    """
+    n = len(df)
+    p = (df["pnl_pct"] > 0).mean()
+    
+    # 標準誤差
+    # √(p(1-p)/n): 二項分布の標準偏差をサンプル数で割ったもの
+    se = np.sqrt(p * (1 - p) / n)
+    
+    # 95%信頼区間（z=1.96）
+    ci_lower = p - 1.96 * se
+    ci_upper = p + 1.96 * se
+    
+    # 損益分岐点
+    breakeven = 1 / (1 + TAKE_PROFIT / STOP_LOSS)
+    
+    print("\n=== 統計的優位性の検証 ===")
+    print(f"サンプル数    : {n:,}件")
+    print(f"勝率（点推定）: {p*100:.1f}%")
+    print(f"95%信頼区間  : {ci_lower*100:.1f}% 〜 {ci_upper*100:.1f}%")
+    print(f"損益分岐点   : {breakeven*100:.1f}%")
+    print()
+    
+    if ci_lower > breakeven:
+        print(f"✅ 統計的に有意（信頼区間の下限{ci_lower*100:.1f}% > "
+              f"損益分岐点{breakeven*100:.1f}%）")
+        print(f"→ 95%の確率で勝率は損益分岐点を上回る")
+    else:
+        print(f"⚠️ 統計的に有意でない可能性")
+        print(f"→ 信頼区間が損益分岐点を下回っている")
+    
+    print()
+    print("【限界の明記】")
+    print("・生存者バイアス: 現在のS&P500銘柄のみで検証")
+    print("・過去への適合: この数字が将来も続く保証はない")
+    print("・信頼区間はサンプリング誤差のみを考慮")
+    print("  （モデルの誤特定・市場環境の変化は含まない）")
+
 
 if __name__ == "__main__":
     print("=== バックテスト結果の可視化 ===")
@@ -238,5 +287,9 @@ if __name__ == "__main__":
 
     print("\n3. 累積損益の推移...")
     plot_cumulative_pnl(df)
+
+    print("\n4. 統計的優位性の検証...")
+    from config import TAKE_PROFIT, STOP_LOSS
+    calculate_confidence_interval(df)
 
     print("\n全グラフの生成完了！")
