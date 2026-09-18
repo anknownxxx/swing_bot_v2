@@ -6,3 +6,5 @@ __pycache__/
 .venv/
 backtest_results.csv
 *.png
+~$*.xlsx
+*.xlsx
